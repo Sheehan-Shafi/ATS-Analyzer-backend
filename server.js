@@ -37,6 +37,8 @@ const connectToDatabase = async () => {
 connectToDatabase();
 
 // Routes - Add your routes here as you build them
+app.use("/api/auth", authRoutes);
+app.use("/api/resume", resumeRoutes);
 app.use("/auth", authRoutes);
 app.use("/resume", resumeRoutes);
 
