@@ -45,21 +45,33 @@ export const analyzeResume = async (req, res) => {
     const jdKeywords = extractKeywords(jobDescription);
     const resumeKeywords = extractKeywords(resumeText);
     const score = calculateATSScore(jdKeywords, resumeKeywords);
-    const suggestions = await analyzeWithGemini(resumeText, jobDescription);
+    const aiResult = await analyzeWithGemini(resumeText, jobDescription);
+
+    const report = aiResult?.success && aiResult?.analysis
+      ? {
+          success: true,
+          analysis: aiResult.analysis,
+          score: aiResult.analysis.compatibility_score ?? score,
+          suggestions: aiResult.analysis,
+        }
+      : {
+          success: true,
+          analysis: null,
+          score,
+          suggestions: aiResult,
+        };
 
     const savedResume = await Resume.create({
       userId: req.user?.id,
       title: title || "Untitled Analysis",
       text: resumeText,
       jobDescription,
-      atsScore: score,
-      suggestions,
+      atsScore: report.score,
+      suggestions: report,
     });
 
     res.json({
-      success: true,
-      score,
-      suggestions,
+      ...report,
       savedResumeId: savedResume._id,
     });
   } catch (err) {
